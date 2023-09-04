@@ -67,9 +67,38 @@ const P5SketchWithAudio = () => {
             p.colorMode(p.HSB);
             p.strokeWeight(2);
             p.noLoop();
+            
         }
 
+
         p.draw = () => {
+            p.translate(p.width/2, p.height/2);
+            p.background(0);
+            const circleSize = p.width / 65;
+            let stepsIncrementer = Math.ceil(p.TWO_PI / Math.acos(1.33 * (1 - circleSize / (2 * circleSize))))
+            console.log(p.TWO_PI);
+            console.log(circleSize / p.TWO_PI);
+            console.log(50 / p.TWO_PI);
+
+            let x = 0;
+            let y = 0;
+            let numOfSteps = stepsIncrementer;
+            let numOfRings = p.width / 2 >= p.height / 2 ? 
+                Math.ceil((p.width / 2) / circleSize) :
+                Math.ceil((p.height / 2) / circleSize);
+            p.ellipse(0, 0, circleSize, circleSize);
+
+            for (let i = 0; i < numOfRings; i++) {
+                for (let i = 0; i < numOfSteps; i++){
+                    p.rotate(p.TWO_PI/numOfSteps);
+                    p.ellipse(x, y, circleSize, circleSize);
+                }
+                x = x + circleSize;
+                y = x;
+                if(i > 0){
+                    numOfSteps = numOfSteps + stepsIncrementer;
+                }
+            }
             if(p.audioLoaded && p.song.isPlaying()){
 
             }
