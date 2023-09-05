@@ -5,8 +5,8 @@ import * as p5 from "p5";
 import { Midi } from '@tonejs/midi'
 import PlayIcon from './functions/PlayIcon.js';
 
-import audio from "../audio/blobs-no-1.ogg";
-import midi from "../audio/blobs-no-1.mid";
+import audio from "../audio/circles-no-7.ogg";
+import midi from "../audio/circles-no-7.mid";
 
 /**
  * Circles No. 7
@@ -65,48 +65,94 @@ const P5SketchWithAudio = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.background(0);
             p.colorMode(p.HSB);
-            p.strokeWeight(2);
+            p.strokeWeight(4);
             p.noLoop();
-            
         }
 
 
         p.draw = () => {
             p.translate(p.width/2, p.height/2);
-            p.background(0);
-            const circleSize = p.width / 65;
-            let stepsIncrementer = Math.ceil(p.TWO_PI / Math.acos(1.33 * (1 - circleSize / (2 * circleSize))))
-            console.log(p.TWO_PI);
-            console.log(circleSize / p.TWO_PI);
-            console.log(50 / p.TWO_PI);
+            if(p.audioLoaded && p.song.isPlaying()){
 
+            }
+        }
+
+        p.circleSets = [];
+
+        p.executeCueSet1 = (note) => {
+            const { duration } = note;
+            const circleSize = p.random(50, 100);
+            let stepsIncrementer = Math.ceil(p.TWO_PI / Math.acos(0.5 * (1 - circleSize / (2 * circleSize))))
             let x = 0;
             let y = 0;
             let numOfSteps = stepsIncrementer;
             let numOfRings = p.width / 2 >= p.height / 2 ? 
                 Math.ceil((p.width / 2) / circleSize) :
                 Math.ceil((p.height / 2) / circleSize);
-            p.ellipse(0, 0, circleSize, circleSize);
 
-            for (let i = 0; i < numOfRings; i++) {
-                for (let i = 0; i < numOfSteps; i++){
-                    p.rotate(p.TWO_PI/numOfSteps);
-                    p.ellipse(x, y, circleSize, circleSize);
+            p.circleSets = [];
+            p.circleSets[0] = [
+                {
+                    rotation: 0,
+                    x: 0, 
+                    y: 0, 
+                    size: circleSize,
                 }
+            ];
+
+            x = x + circleSize;
+            y = x;
+
+            for (let i = 1; i < numOfRings; i++) {
+                const array = [];
+                for (let j = 0; j < numOfSteps; j++){
+                    array.push(
+                        {
+                            rotation: p.TWO_PI/numOfSteps,
+                            x: x, 
+                            y: y, 
+                            size: circleSize,
+                        }
+                    );
+                }
+                p.circleSets[i] = p.shuffle(array);
                 x = x + circleSize;
                 y = x;
-                if(i > 0){
-                    numOfSteps = numOfSteps + stepsIncrementer;
-                }
+                numOfSteps = numOfSteps + stepsIncrementer;
             }
-            if(p.audioLoaded && p.song.isPlaying()){
 
-            }
+            const delay = (duration * 1000 / p.circleSets.length);
+            p.drawCircleSpiral(delay);
         }
 
+        p.drawCircleSpiral = (delay) => {
+            if(Math.random() > 0.5) {
+                p.circleSets.reverse();
+            }
 
-        p.executeCueSet1 = (note) => {
-
+            const hue = p.random(0, 360);
+            p.background(hue, 50, 50);
+            for (let i = 0; i < p.circleSets.length; i++) {
+                const circlesArray = p.circleSets[i];
+                setTimeout(
+                    function () {
+                        const smallDelay = delay / circlesArray.length;
+                        for (let j = 0; j < circlesArray.length; j++) {
+                            const { rotation, x, y, size } = circlesArray[j];
+                            setTimeout(
+                                function () {
+                                    p.fill(hue, p.random(50, 100), p.random(75, 100));
+                                    p.stroke(hue, p.random(50, 100), p.random(75, 100));
+                                    p.rotate(rotation);
+                                    p.circle(x, y, size, size);
+                                },
+                                (smallDelay * j)
+                            );
+                        }
+                    },
+                    (delay * i)
+                );
+            }
         }
 
         p.hasStarted = false;
