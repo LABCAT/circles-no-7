@@ -121,7 +121,7 @@ const P5SketchWithAudio = () => {
                 numOfSteps = numOfSteps + stepsIncrementer;
             }
 
-            const delay = (duration * 1000 / p.circleSets.length);
+            const delay = (duration * 1000 / 8);
             p.drawCircleSpiral(delay);
         }
 
@@ -131,23 +131,17 @@ const P5SketchWithAudio = () => {
             }
 
             const hue = p.random(0, 360);
-            p.background(hue, 50, 50);
+            p.background(hue, 75, 50);
             for (let i = 0; i < p.circleSets.length; i++) {
                 const circlesArray = p.circleSets[i];
                 setTimeout(
                     function () {
-                        const smallDelay = delay / circlesArray.length;
                         for (let j = 0; j < circlesArray.length; j++) {
                             const { rotation, x, y, size } = circlesArray[j];
-                            setTimeout(
-                                function () {
-                                    p.fill(hue, p.random(50, 100), p.random(75, 100));
-                                    p.stroke(hue, p.random(50, 100), p.random(75, 100));
-                                    p.rotate(rotation);
-                                    p.circle(x, y, size, size);
-                                },
-                                (smallDelay * j)
-                            );
+                            p.fill(hue, p.random(50, 100), p.random(75, 100));
+                            p.stroke(hue, p.random(50, 100), p.random(75, 100));
+                            p.rotate(rotation);
+                            p.circle(x, y, size, size);
                         }
                     },
                     (delay * i)
