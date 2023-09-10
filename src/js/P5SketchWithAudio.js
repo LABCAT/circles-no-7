@@ -8,6 +8,9 @@ import PlayIcon from './functions/PlayIcon.js';
 import audio from "../audio/circles-no-7.ogg";
 import midi from "../audio/circles-no-7.mid";
 
+import audioRemix from "../audio/circles-no-7-remix.ogg";
+import midiRemix from "../audio/circles-no-7-remix.mid";
+
 /**
  * Circles No. 7
  */
@@ -28,8 +31,11 @@ const P5SketchWithAudio = () => {
 
         p.PPQ = 3840 * 4;
 
+        p.playRemix = true;
+
         p.loadMidi = () => {
-            Midi.fromUrl(midi).then(
+            const midiFile = p.playRemix ? midiRemix : midi; 
+            Midi.fromUrl(midiFile).then(
                 function(result) {
                     const noteSet1 = result.tracks[2].notes; // Synth 1 - Init Patch
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
@@ -42,7 +48,9 @@ const P5SketchWithAudio = () => {
         }
 
         p.preload = () => {
-            p.song = p.loadSound(audio, p.loadMidi);
+            p.playRemix = Math.random() > 0.4;
+            const audioFile = p.playRemix ? audioRemix : audio; 
+            p.song = p.loadSound(audioFile, p.loadMidi);
             p.song.onended(p.logCredits);
         }
 
@@ -65,7 +73,7 @@ const P5SketchWithAudio = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.background(0);
             p.colorMode(p.HSB);
-            p.strokeWeight(4);
+            p.strokeWeight(8);
             p.noLoop();
         }
 
@@ -80,7 +88,7 @@ const P5SketchWithAudio = () => {
         p.circleSets = [];
 
         p.executeCueSet1 = (note) => {
-            const { duration } = note;
+            const { currentCue, duration } = note;
             const circleSize = p.random(50, 100);
             let stepsIncrementer = Math.ceil(p.TWO_PI / Math.acos(0.5 * (1 - circleSize / (2 * circleSize))))
             let x = 0;
@@ -121,31 +129,52 @@ const P5SketchWithAudio = () => {
                 numOfSteps = numOfSteps + stepsIncrementer;
             }
 
-            const delay = (duration * 1000 / 8);
-            p.drawCircleSpiral(delay);
+            console.log(currentCue);
+            if(currentCue === 55) {
+                p.circleSets = p.circleSets.flat();
+            }
+            const durationDivisor = currentCue === 55 ? p.circleSets.length : 8;
+            const delay = (duration * 1000 / durationDivisor);
+            p.drawCircleSpiral(delay, currentCue === 55);
         }
 
-        p.drawCircleSpiral = (delay) => {
+        p.drawCircleSpiral = (delay, isFlat) => {
             if(Math.random() > 0.5) {
                 p.circleSets.reverse();
             }
 
             const hue = p.random(0, 360);
             p.background(hue, 75, 50);
-            for (let i = 0; i < p.circleSets.length; i++) {
-                const circlesArray = p.circleSets[i];
-                setTimeout(
-                    function () {
-                        for (let j = 0; j < circlesArray.length; j++) {
-                            const { rotation, x, y, size } = circlesArray[j];
+            if(isFlat) {
+                for (let i = 0; i < p.circleSets.length; i++) {
+                    const { rotation, x, y, size } = p.circleSets[i];
+                    setTimeout(
+                        function () {
                             p.fill(hue, p.random(50, 100), p.random(75, 100));
                             p.stroke(hue, p.random(50, 100), p.random(75, 100));
                             p.rotate(rotation);
                             p.circle(x, y, size, size);
-                        }
-                    },
-                    (delay * i)
-                );
+                        },
+                        (delay * i)
+                    );
+                }
+            }
+            else {
+                for (let i = 0; i < p.circleSets.length; i++) {
+                    const circlesArray = p.circleSets[i];
+                    setTimeout(
+                        function () {
+                            for (let j = 0; j < circlesArray.length; j++) {
+                                const { rotation, x, y, size } = circlesArray[j];
+                                p.fill(hue, p.random(50, 100), p.random(75, 100));
+                                p.stroke(hue, p.random(50, 100), p.random(75, 100));
+                                p.rotate(rotation);
+                                p.circle(x, y, size, size);
+                            }
+                        },
+                        (delay * i)
+                    );
+                }
             }
         }
 
